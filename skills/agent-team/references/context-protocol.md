@@ -162,6 +162,21 @@ lead 会据此核验，所以每条都要能用**命令**或**文件事实**验�
 
 在契约的 Stop Conditions 段之后追加一条执行指令：
 
+> 遇到契约未覆盖的不确定点时，用 `escalate --severity blocker` 上报 lead，
+> 不要自行决定，也不要横向询问其他 agent（横向通道不支持）。
+
+**若该角色以 goal 模式启动**（主 agent 默认，opencode 下为 `ulw`），上面这段与 Stop Conditions
+第 8 段、第 9 段都是**强制项，不能省**。goal 模式的默认行为是「目标不清就自行假设并推进」，
+与本skill「不得自行发挥」直接冲突；契约必须显式压制这个默认：
+
+```markdown
+> 本任务以 goal 模式执行。你只拿到目标，不会有步骤清单——**但凡契约未覆盖的情况，
+> 一律不要自行假设**：用 `escalate --severity blocker` 上报 main；
+> 若你是 main，用 `im ask` 向用户确认。预算软超时即checkpoint 收摊，不要硬撑到目标完成。
+```
+
+在契约的 Stop Conditions 段之后追加一条执行指令：
+
 > 遇到契约未覆盖的不确定点时，用 `teamctl.py escalate --severity blocker` 上报 lead，
 > 不要自行决定，也不要横向询问其他 agent（横向通道不支持）。
 

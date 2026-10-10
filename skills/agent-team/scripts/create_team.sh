@@ -208,15 +208,22 @@ write_if_absent "$TEAM_DIR/TEAM.md" <<EOF
 
 | 窗口 | 角色 | agent CLI | 模式 | 落地输出 |
 |------|------|-----------|------|----------|
-| lead | 主导者 | <cli> | resident | logs/lead.pipe.log |
-| <role> | <role> | <cli> | ephemeral | logs/<role>.pipe.log |
+| lead | 主导者 | <cli> | **goal**（opencode: \`ulw\`） | logs/lead.pipe.log |
+| <role> | <role> | <cli> | 默认 | logs/<role>.pipe.log |
+
+> **模式约定**：lead 用 goal 模式——该模式「只接收目标、不接收步骤计划」，与 lead 从目标自行拆解的职责契合。opencode 下用提示词关键词 \`ulw\` 激活（\`opencode --prompt "ulw"\`）。**不要给 worker 加 ulw**：契约已把步骤写清，再让 agent 自行规划会偏离 Do-Not-Touch 边界。
+>
+> ⚠️ goal 模式默认「目标不清就自行假设」，与本 skill 的「不得自行发挥」冲突——**lead 契约的 Stop Conditions 与「向用户确认」段为强制项**，必须显式压制该默认行为。
 
 拉起命令：
 \`\`\`bash
 tmux new-session -d -s $SESSION_NAME -n lead
-tmux send-keys -t $SESSION_NAME:lead "<agent-cli>" Enter
+tmux send-keys -t $SESSION_NAME:lead 'opencode --prompt "ulw"' Enter
 tmux pipe-pane -t $SESSION_NAME:lead -o 'cat >> logs/lead.pipe.log'
 \`\`\`
+
+> 若 \`--prompt\` 参数在你的 opencode 版本不生效，改用交互式注入：启动后向 lead 窗口发送
+> \`ulw: 按 contracts/lead.md 主导本次任务\`。详见 agent-team 的 \`references/agent-cli.md\`。
 
 > 不擅自attach；把 \`tmux attach -t $SESSION_NAME\` 交给用户决定。
 

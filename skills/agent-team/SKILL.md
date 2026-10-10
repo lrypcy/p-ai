@@ -178,13 +178,21 @@ scripts/create_team.sh -n <team-name> -r <root> -l <gradient> -m <resident,ephem
 脚本生成骨架、初始 `TEAM.md`、`.gitignore`、`git init`。**tmux session 按需单独创建**（团队目录可以先建好、agent 后拉起）：
 
 ```bash
-tmux new-session -d -s at-<team-name> -n <role>
-tmux send-keys -t at-<team-name>:<role> "<agent-cli>" Enter
+# 主 agent 用 goal 模式（opencode 下 ulw 是提示词关键词）；worker 用默认模式
+tmux new-session -d -s at-<team-name> -n lead
+tmux send-keys -t at-<team-name>:lead 'opencode --prompt "ulw"' Enter
+tmux send-keys -t at-<team-name>:builder-a 'opencode' Enter
 ```
+
+**为什么主 agent 默认 goal 模式**：该模式"只接收目标、不接收步骤计划"，与 lead「从用户目标自行拆解」的职责高度契合（详见 `references/agent-cli.md`「主 agent 默认模式」）。若你的 opencode 版本 `--prompt` 不生效，改用交互式注入：`opencode` 启动后向 lead 窗口发送 `ulw: 按 contracts/lead.md 主导本次任务`。
+
+**`ulw` 只给 lead，不要给 worker** —— 契约已把步骤写清，再叠加"自己想办法"会让 worker 偏离 Do-Not-Touch 边界。
 
 agent CLI 的启动与 session 恢复命令见 `references/agent-cli.md`。**不要擅自attach**，把attach 命令告诉用户即可。
 
 启动每个 agent 后立刻做三件事：**开 pipe**（`tmux pipe-pane`，行为记录的前提）、**投放契约**（让它读 `contracts/<role>.md` + `TEAM.md` 里自己那一行）、**登记会话**（`session set`）。
+
+> ⚠️ **用 goal 模式时，lead 的契约必须写清 Stop Conditions 与上报指令**。goal 模式默认「目标不清就自行假设」，与本 skill「不得自行发挥」直接冲突——若不写明约束，lead 会真的自己假设。以本skill 规则优先。
 
 ### Step 6：生命周期管理（运行期）
 

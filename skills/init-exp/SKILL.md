@@ -117,12 +117,19 @@ ROOT/<name>/            # git init 的独立仓库
 
 **4. 创建 tmux session 与窗口，并在启动后立刻开 pipe**：
 
+   main 窗口**用 goal 模式**（opencode 下用 `ulw` 关键词），worker 用默认模式：
+
    ```bash
    tmux new-session -d -s exp-<name> -n main
-   tmux send-keys -t exp-<name>:main "<main-cmd>" Enter
+   tmux send-keys -t exp-<name>:main 'opencode --prompt "ulw"' Enter   # 或" <main-cmd> "
+   tmux send-keys -t exp-<name>:worker "<worker-cmd>" Enter             # 默认模式，不加 ulw
    tmux pipe-pane -t exp-<name>:main -o 'cat >> logs/main.pipe.log'   # ← 必须，init-exp 原流程缺此步
    ```
-   > 各 agent CLI 的启动与 session 恢复命令见 agent-team 的 `references/agent-cli.md`。**不要擅自 attach**。
+   **为什么 main 用 goal 模式**：该模式"只接收目标、不接收步骤计划"，与 main「从实验目标自行拆解」的职责高度契合。**`ulw` 只给 main** —— worker 的契约已把步骤写清，再叠加"自己想办法"会让它偏离 Do-Not-Touch 边界。
+   若 opencode 版本的 `--prompt` 不生效，改用交互式注入：启动后向 main 窗口发送 `ulw: 按 contracts/main.md 主导本次实验`。
+   > 各 agent CLI 的启动与 session 恢复命令见 agent-team 的 `references/agent-cli.md`。**不要擅自attach**。
+
+   ⚠️ **goal 模式下 `contracts/main.md` 的 Stop Conditions 与「向用户确认」段为强制项**——goal 模式默认「目标不清就自行假设」，与实验纪律冲突，契约里必须显式压制。
 
 **5. 确认人机通道（Team Leader ↔ 用户）** —— 让main 在拿不准时能直接问你，不要自行发挥。**先查再配，幂等**：
 
